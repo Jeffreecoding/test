@@ -20,7 +20,11 @@
           v-for="(cell, x) in row" 
           :key="`cell-${x}-${y}`" 
           class="cell"
-          :class="{ filled: cell !== 0, [`color-${cell}`]: cell !== 0 }"
+          :class="{ 
+            filled: cell !== 0, 
+            [`color-${cell}`]: cell !== 0,
+            'clearing': isClearing && clearingLines.includes(y)
+          }"
         ></div>
       </div>
     </div>
@@ -39,6 +43,8 @@ const {
   lines,
   gameActive,
   paused,
+  clearingLines,
+  isClearing,
   startGame,
   pauseGame,
   resumeGame,
@@ -53,7 +59,7 @@ const boardRef = ref(null);
 
 // Handle keyboard controls
 const handleKeydown = (e) => {
-  if (!gameActive.value || paused.value) return;
+  if (!gameActive.value || paused.value || isClearing.value) return;
   
   switch (e.key) {
     case 'ArrowLeft':
@@ -115,6 +121,7 @@ onUnmounted(() => {
   width: 30px;
   height: 30px;
   border: 1px solid #333;
+  position: relative;
 }
 
 .filled {
@@ -129,6 +136,16 @@ onUnmounted(() => {
 .color-5 { background-color: green; }   /* S */
 .color-6 { background-color: purple; }  /* T */
 .color-7 { background-color: red; }     /* Z */
+
+/* Simple clearing animation */
+.clearing {
+  animation: flash 0.5s infinite alternate;
+}
+
+@keyframes flash {
+  0% { opacity: 1; }
+  100% { opacity: 0.3; }
+}
 
 .game-info {
   display: flex;
@@ -153,3 +170,4 @@ button:hover {
   background-color: #45a049;
 }
 </style>
+

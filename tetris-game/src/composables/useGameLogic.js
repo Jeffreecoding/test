@@ -73,6 +73,8 @@ export function useGameLogic() {
   const gameActive = ref(false);
   const paused = ref(false);
   const gameInterval = ref(null);
+  const clearingLines = ref([]);
+  const isClearing = ref(false);
   
   // Current tetromino state
   const currentPiece = reactive({
@@ -224,39 +226,76 @@ export function useGameLogic() {
     }
     
     // Check for line clears
-    clearLines();
+    const hasCleared = clearLines();
     
-    // Spawn new piece
-    spawnNewPiece();
+    // Only spawn new piece if not clearing lines
+    if (!hasCleared) {
+      spawnNewPiece();
+    }
+    // We'll spawn the new piece after the clearing animation in clearLines()
   }
   
   // Clear completed lines
   function clearLines() {
     let linesCleared = 0;
+    clearingLines.value = []; // Reset clearing lines
     
+    // Check each row from bottom to top
     for (let y = ROWS - 1; y >= 0; y--) {
+      // If row is full, mark it for animation
       if (board.value[y].every(cell => cell !== 0)) {
-        // Remove the line
-        board.value.splice(y, 1);
-        // Add empty line at top
-        board.value.unshift(Array(COLS).fill(0));
         linesCleared++;
-        y++; // Check the same row again
+        clearingLines.value.push(y);
       }
     }
     
+    // If lines were cleared
     if (linesCleared > 0) {
-      // Update score and level
-      lines.value += linesCleared;
-      score.value += calculateScore(linesCleared, level.value);
-      level.value = Math.floor(lines.value / 10) + 1;
+      isClearing.value = true;
       
-      // Adjust game speed based on level
-      if (gameInterval.value) {
-        clearInterval(gameInterval.value);
-        startGameLoop();
-      }
+      // Animate clearing
+      setTimeout(() => {
+        // Create a copy of the current board
+        const newBoard = [];
+        
+        // Only keep rows that aren't full
+        for (let y = 0; y < ROWS; y++) {
+          if (!clearingLines.value.includes(y)) {
+            newBoard.push([...board.value[y]]);
+          }
+        }
+        
+        // Add empty rows at the top to maintain board size
+        while (newBoard.length < ROWS) {
+          newBoard.unshift(Array(COLS).fill(0));
+        }
+        
+        // Update the board
+        board.value = newBoard;
+        
+        // Update score and level
+        lines.value += linesCleared;
+        score.value += calculateScore(linesCleared, level.value);
+        level.value = Math.floor(lines.value / 10) + 1;
+        
+        // Reset clearing state
+        clearingLines.value = [];
+        isClearing.value = false;
+        
+        // Adjust game speed based on level
+        if (gameInterval.value) {
+          clearInterval(gameInterval.value);
+          startGameLoop();
+        }
+        
+        // Spawn new piece
+        spawnNewPiece();
+      }, 500); // Animation duration
+      
+      return true;
     }
+    
+    return false;
   }
   
   // Calculate score based on lines cleared and level
@@ -342,6 +381,8 @@ export function useGameLogic() {
     lines,
     gameActive,
     paused,
+    clearingLines,
+    isClearing,
     startGame,
     pauseGame,
     resumeGame,
@@ -352,3 +393,14 @@ export function useGameLogic() {
     hardDrop
   };
 }
+
+
+
+
+
+
+
+
+
+
+
