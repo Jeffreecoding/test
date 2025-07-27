@@ -1,7 +1,7 @@
 <template>
   <div class="app">
     <header>
-      <h1>Vue Tetris</h1>
+      <h1>Junlin's Tetris</h1>
     </header>
     <main>
       <TetrisBoard />
@@ -48,4 +48,5 @@ footer {
   color: #888;
 }
 </style>
+
 

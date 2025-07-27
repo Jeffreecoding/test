@@ -63,7 +63,8 @@ const handleKeydown = (e) => {
   
   switch (e.key) {
     case 'ArrowLeft':
-      moveLeft();
+
+     moveLeft();
       break;
     case 'ArrowRight':
       moveRight();
